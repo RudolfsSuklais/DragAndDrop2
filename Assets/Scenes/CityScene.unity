@@ -625,6 +625,7 @@ GameObject:
   - component: {fileID: 1137538118}
   - component: {fileID: 1137538117}
   - component: {fileID: 1137538116}
+  - component: {fileID: 1137538120}
   m_Layer: 5
   m_Name: FireTruck
   m_TagString: Fire
@@ -715,6 +716,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1137538114}
   m_CullTransparentMesh: 1
+--- !u!114 &1137538120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1137538114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa3b36ef00504b4a9321843122bbb84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  objScript: {fileID: 1310376410}
 --- !u!1 &1310376409
 GameObject:
   m_ObjectHideFlags: 0
@@ -726,6 +740,7 @@ GameObject:
   - component: {fileID: 1310376411}
   - component: {fileID: 1310376410}
   - component: {fileID: 1310376412}
+  - component: {fileID: 1310376413}
   m_Layer: 0
   m_Name: ScripHolder
   m_TagString: Untagged
@@ -790,6 +805,19 @@ MonoBehaviour:
   screenPoint: {x: 0, y: 0, z: 0}
   offset: {x: 0, y: 0, z: 0}
   padding: 0.02
+--- !u!114 &1310376413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1310376409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa3b36ef00504b4a9321843122bbb84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  objScript: {fileID: 0}
 --- !u!1 &1319154692
 GameObject:
   m_ObjectHideFlags: 0
