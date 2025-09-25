@@ -7,20 +7,19 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
     private Vector3 placeSiz, vehicleSiz;
     private float xSizeDiff, ySizeDiff;
     public ObjectScript objScript;
+    public UIManager uiManager;
 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void OnDrop(PointerEventData eventData)
     {
-        if((eventData.pointerDrag != null) && 
+        if ((eventData.pointerDrag != null) &&
             Input.GetMouseButtonUp(0) && !Input.GetMouseButton(1) && !Input.GetMouseButton(2))
         {
-            if(eventData.pointerDrag.tag.Equals(tag))
+            if (eventData.pointerDrag.tag.Equals(tag))
             {
-               placeZRot = 
+                placeZRot =
                     eventData.pointerDrag.GetComponent<RectTransform>().transform.eulerAngles.z;
-                
-                vehicleZRot = 
+
+                vehicleZRot =
                     GetComponent<RectTransform>().transform.eulerAngles.z;
 
                 rotDiff = Mathf.Abs(placeZRot - vehicleZRot);
@@ -33,8 +32,9 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
                 Debug.Log("X size difference: " + xSizeDiff);
                 Debug.Log("Y size difference: " + ySizeDiff);
 
-                if((rotDiff <= 5 || (rotDiff >= 355 && rotDiff <= 360)) &&
-                    (xSizeDiff <= 0.05 && ySizeDiff <= 0.05)) {
+                if ((rotDiff <= 5 || (rotDiff >= 355 && rotDiff <= 360)) &&
+                    (xSizeDiff <= 0.05 && ySizeDiff <= 0.05))
+                {
                     Debug.Log("Correct place");
 
                     objScript.rightPlace = true;
@@ -47,8 +47,15 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
                     eventData.pointerDrag.GetComponent<RectTransform>().localScale =
                          GetComponent<RectTransform>().localScale;
 
+                    // Mark this vehicle as correctly placed
+                    int index = GetVehicleIndexByTag(eventData.pointerDrag.tag);
+                    if (index != -1)
+                    {
+                        objScript.placedCorrectly[index] = true;
+                    }
 
-                    switch(eventData.pointerDrag.tag)
+                    // Play sound based on tag
+                    switch (eventData.pointerDrag.tag)
                     {
                         case "Garbage":
                             objScript.effects.PlayOneShot(objScript.audioCli[2]);
@@ -66,35 +73,58 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
                             Debug.Log("Unknown tag detected");
                             break;
                     }
-                }
 
-            } else
+                    // Inside the if after marking vehicle correctly placed:
+                    Debug.Log($"Vehicles placed correctly: {CountCorrectlyPlaced()}");
+                    if (CountCorrectlyPlaced() >= 2)
+                    {
+                        Debug.Log("You Win! At least two vehicles placed correctly.");
+                        uiManager.ShowWinScreen();
+                    }
+
+
+                }
+            }
+            else
             {
                 objScript.rightPlace = false;
                 objScript.effects.PlayOneShot(objScript.audioCli[1]);
 
-                switch(eventData.pointerDrag.tag)
+                int index = GetVehicleIndexByTag(eventData.pointerDrag.tag);
+                if (index != -1)
                 {
-                    case "Garbage":
-                        objScript.vehicles[0].GetComponent<RectTransform>().localPosition = 
-                            objScript.startCoordinates[0];
-                        break;
-
-                    case "Medicine":
-                        objScript.vehicles[1].GetComponent<RectTransform>().localPosition =
-                           objScript.startCoordinates[1];
-                        break;
-
-                    case "Fire":
-                        objScript.vehicles[2].GetComponent<RectTransform>().localPosition =
-                           objScript.startCoordinates[2];
-                        break;
-
-                    default:
-                        Debug.Log("Unknown tag detected");
-                        break;
+                    objScript.vehicles[index].GetComponent<RectTransform>().localPosition =
+                        objScript.startCoordinates[index];
+                    objScript.placedCorrectly[index] = false;
+                }
+                else
+                {
+                    Debug.Log("Unknown tag detected");
                 }
             }
         }
+    }
+
+    // Helper function to find vehicle index by tag
+    private int GetVehicleIndexByTag(string tag)
+    {
+        for (int i = 0; i < objScript.vehicles.Length; i++)
+        {
+            if (objScript.vehicles[i].tag == tag)
+                return i;
+        }
+        return -1;
+    }
+
+    // Count how many vehicles are correctly placed
+    private int CountCorrectlyPlaced()
+    {
+        int count = 0;
+        for (int i = 0; i < objScript.placedCorrectly.Length; i++)
+        {
+            if (objScript.placedCorrectly[i])
+                count++;
+        }
+        return count;
     }
 }
