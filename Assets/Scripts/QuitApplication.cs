@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class QuitApplication : MonoBehaviour
 {
@@ -6,10 +9,12 @@ public class QuitApplication : MonoBehaviour
     {
         Debug.Log("Quit button pressed");
 
-
-
-        UnityEditor.EditorApplication.isPlaying = false;
-
+#if UNITY_EDITOR
+        // Stop play mode in the editor
+        EditorApplication.isPlaying = false;
+#else
+        // Quit the application in the build
+        Application.Quit();
+#endif
     }
-
 }

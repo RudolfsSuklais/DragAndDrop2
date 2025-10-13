@@ -32,8 +32,8 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
                 Debug.Log("X size difference: " + xSizeDiff);
                 Debug.Log("Y size difference: " + ySizeDiff);
 
-                if ((rotDiff <= 5 || (rotDiff >= 355 && rotDiff <= 360)) &&
-                    (xSizeDiff <= 0.05 && ySizeDiff <= 0.05))
+                if ((rotDiff <= 15 || (rotDiff >= 345 && rotDiff <= 360)) &&
+                    (xSizeDiff <= 0.15 && ySizeDiff <= 0.15))
                 {
                     Debug.Log("Correct place");
 
@@ -74,15 +74,15 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
                             break;
                     }
 
-                    // Inside the if after marking vehicle correctly placed:
-                    Debug.Log($"Vehicles placed correctly: {CountCorrectlyPlaced()}");
-                    if (CountCorrectlyPlaced() >= 2)
+                    int placedCount = CountCorrectlyPlaced();
+                    Debug.Log($"Vehicles placed correctly: {placedCount}");
+
+                    // Show win screen only if all vehicles are placed
+                    if (placedCount == objScript.vehicles.Length)
                     {
-                        Debug.Log("You Win! At least two vehicles placed correctly.");
-                        uiManager.ShowWinScreen();
+                        Debug.Log("You Win! All vehicles placed correctly.");
+                        uiManager.ShowWinScreenWithStars(placedCount);
                     }
-
-
                 }
             }
             else
@@ -105,7 +105,6 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
         }
     }
 
-    // Helper function to find vehicle index by tag
     private int GetVehicleIndexByTag(string tag)
     {
         for (int i = 0; i < objScript.vehicles.Length; i++)
@@ -116,7 +115,6 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
         return -1;
     }
 
-    // Count how many vehicles are correctly placed
     private int CountCorrectlyPlaced()
     {
         int count = 0;

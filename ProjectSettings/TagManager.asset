@@ -17,6 +17,7 @@ TagManager:
   - tractor1
   - tractor2
   - Bomb
+  - GarbageTruck
   layers:
   - Default
   - TransparentFX

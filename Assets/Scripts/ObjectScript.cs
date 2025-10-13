@@ -24,7 +24,7 @@ public class ObjectScript : MonoBehaviour
     public static bool drag = false;
     public bool[] placedCorrectly;
     public int correctPlacements = 0;
-    public GameObject winPanel; // assign your WinPanel UI GameObject here
+    public GameObject winPanel; 
 
 
 

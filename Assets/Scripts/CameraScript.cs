@@ -21,7 +21,7 @@ public class CameraScript : MonoBehaviour
         cameraMinY = bottomLeft.y;
     }
 
-    // Update is called once per frame
+    
     void Update()
     {
         x = Input.GetAxis("Mouse X") * panSpeed;
