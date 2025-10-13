@@ -16,6 +16,7 @@ TagManager:
   - police
   - tractor1
   - tractor2
+  - Bomb
   layers:
   - Default
   - TransparentFX
