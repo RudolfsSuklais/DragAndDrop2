@@ -296,14 +296,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2061152307}
         m_TargetAssemblyTypeName: SceneLoader, Assembly-CSharp
-        m_MethodName: LoadSceneByName
-        m_Mode: 5
+        m_MethodName: LoadSceneByIndex
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 1
           m_FloatArgument: 0
-          m_StringArgument: CityScene
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &505849043
@@ -461,6 +461,7 @@ GameObject:
   - component: {fileID: 708409257}
   - component: {fileID: 708409256}
   - component: {fileID: 708409258}
+  - component: {fileID: 708409259}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -511,6 +512,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fd200c8cd92b8041b808092bf7f7503, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &708409259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708409255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62f53643871dd264fa2ce5bd3e69b1a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  menuMusic: {fileID: 8300000, guid: b9755c882abd6ea47b439a1ef684ee63, type: 3}
+  gameMusic: {fileID: 0}
+  musicVolume: 0.5
 --- !u!1 &743198924
 GameObject:
   m_ObjectHideFlags: 0
