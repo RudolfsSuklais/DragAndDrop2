@@ -8,6 +8,7 @@ public class CameraScript : MonoBehaviour
     Vector3 bottomLeft, topRight;
     float cameraMaxX, cameraMinX, cameraMaxY, cameraMinY, x, y;
     public Camera cam;
+    private UIManager uiManager;
 
     void Start()
     {
@@ -19,11 +20,20 @@ public class CameraScript : MonoBehaviour
         cameraMinX = bottomLeft.x;
         cameraMaxY = topRight.y;
         cameraMinY = bottomLeft.y;
+
+        // Find the UIManager to check for win screen state
+        uiManager = FindFirstObjectByType<UIManager>();
     }
 
-    
+    // Update is called once per frame
     void Update()
     {
+        // Check if win screen is active - if so, don't process camera controls
+        if (IsWinScreenActive())
+        {
+            return;
+        }
+
         x = Input.GetAxis("Mouse X") * panSpeed;
         y = Input.GetAxis("Mouse Y") * panSpeed;
         transform.Translate(x, y, 0);
@@ -65,5 +75,28 @@ public class CameraScript : MonoBehaviour
             transform.position = new Vector3(
              transform.position.x, transform.position.y + (cameraMinY - bottomLeft.y), transform.position.z);
         }
+    }
+
+    private bool IsWinScreenActive()
+    {
+        // Check if UIManager exists and win panel is active
+        if (uiManager != null && uiManager.winPanel != null)
+        {
+            bool isActive = uiManager.winPanel.activeInHierarchy;
+            if (isActive)
+            {
+                // Optionally disable this script completely when win screen is active
+                this.enabled = false;
+            }
+            return isActive;
+        }
+
+        // Fallback: try to find UIManager if not cached
+        if (uiManager == null)
+        {
+            uiManager = FindFirstObjectByType<UIManager>();
+        }
+
+        return false;
     }
 }

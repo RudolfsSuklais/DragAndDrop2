@@ -40,6 +40,7 @@ public class ObstaclesControllerScript : MonoBehaviour
     {
         float waveOffset = Mathf.Sin(Time.time * waveFrequency) * waveAmplitude;
         rectTransform.anchoredPosition += new Vector2(-speed * Time.deltaTime, waveOffset * Time.deltaTime);
+
         // <-
         if (speed > 0 && transform.position.x < (scrreenBoundriesScript.minX + 80) && !isFadingOut)
         {
@@ -60,11 +61,7 @@ public class ObstaclesControllerScript : MonoBehaviour
         {
             Debug.Log("The cursor collided with a bomb! (without car)");
             TriggerExplosion();
-
         }
-
-        // Caurskatīt no šejienes
-
 
         if (ObjectScript.drag && !isFadingOut &&
             RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition, Camera.main))
@@ -73,15 +70,32 @@ public class ObstaclesControllerScript : MonoBehaviour
 
             if (ObjectScript.lastDragged != null)
             {
-                StartCoroutine(ShrinkAndDestroy(ObjectScript.lastDragged, 0.5f));
+                // Find the vehicle index before destroying it
+                int vehicleIndex = GetVehicleIndex(ObjectScript.lastDragged);
+
+                if (vehicleIndex != -1)
+                {
+                    Debug.Log($"[Obstacle] Destroying vehicle {ObjectScript.lastDragged.name} at index {vehicleIndex}");
+                    StartCoroutine(ShrinkAndDestroy(ObjectScript.lastDragged, 0.5f, vehicleIndex));
+                }
+                else
+                {
+                    Debug.LogWarning($"[Obstacle] Could not find vehicle index for {ObjectScript.lastDragged.name}");
+                    // Still destroy the object even if index not found
+                    StartCoroutine(ShrinkAndDestroy(ObjectScript.lastDragged, 0.5f, -1));
+                }
+
                 ObjectScript.lastDragged = null;
                 ObjectScript.drag = false;
+            }
+            else
+            {
+                Debug.LogWarning("[Obstacle] ObjectScript.lastDragged is null!");
             }
 
             StartToDestroy();
         }
     }
-
     public void TriggerExplosion()
     {
         isExploading = true;
@@ -120,12 +134,22 @@ public class ObstaclesControllerScript : MonoBehaviour
         {
             if (hitCollider != null && hitCollider.gameObject != gameObject)
             {
-                ObstaclesControllerScript obj =
-                    hitCollider.gameObject.GetComponent<ObstaclesControllerScript>();
-
-                if (obj != null && !obj.isExploading)
+                // Check if it's a vehicle by looking in the objectScript.vehicles array
+                int vehicleIndex = GetVehicleIndex(hitCollider.gameObject);
+                if (vehicleIndex != -1)
                 {
-                    obj.StartToDestroy();
+                    // It's a vehicle - destroy it properly
+                    objectScript.RemoveVehicle(vehicleIndex);
+                    Destroy(hitCollider.gameObject);
+                }
+                else
+                {
+                    // It's another obstacle
+                    ObstaclesControllerScript obj = hitCollider.gameObject.GetComponent<ObstaclesControllerScript>();
+                    if (obj != null && !obj.isExploading)
+                    {
+                        obj.StartToDestroy();
+                    }
                 }
             }
         }
@@ -142,7 +166,6 @@ public class ObstaclesControllerScript : MonoBehaviour
             StartCoroutine(RecoverColor(0.5f));
 
             objectScript.effects.PlayOneShot(objectScript.audioCli[5]);
-
             StartCoroutine(Vibrate());
         }
     }
@@ -156,8 +179,7 @@ public class ObstaclesControllerScript : MonoBehaviour
 
         while (elpased < duration)
         {
-            rectTransform.anchoredPosition =
-                originalPosition + Random.insideUnitCircle * intensity;
+            rectTransform.anchoredPosition = originalPosition + Random.insideUnitCircle * intensity;
             elpased += Time.deltaTime;
             yield return null;
         }
@@ -191,7 +213,7 @@ public class ObstaclesControllerScript : MonoBehaviour
         Destroy(gameObject);
     }
 
-    IEnumerator ShrinkAndDestroy(GameObject target, float duration)
+    IEnumerator ShrinkAndDestroy(GameObject target, float duration, int vehicleIndex = -1)
     {
         Vector3 orginalScale = target.transform.localScale;
         Quaternion orginalRotation = target.transform.rotation;
@@ -203,9 +225,15 @@ public class ObstaclesControllerScript : MonoBehaviour
             target.transform.localScale = Vector3.Lerp(orginalScale, Vector3.zero, t / duration);
             float angle = Mathf.Lerp(0f, 360f, t / duration);
             target.transform.rotation = Quaternion.Euler(0f, 0f, angle);
-
             yield return null;
         }
+
+        // Notify ObjectScript about the destroyed vehicle BEFORE destroying it
+        if (vehicleIndex != -1 && objectScript != null)
+        {
+            objectScript.RemoveVehicle(vehicleIndex);
+        }
+
         Destroy(target);
     }
 
@@ -215,5 +243,18 @@ public class ObstaclesControllerScript : MonoBehaviour
         image.color = originalColor;
     }
 
+    // Helper method to find vehicle index in the objectScript.vehicles array
+    private int GetVehicleIndex(GameObject vehicleObj)
+    {
+        if (objectScript == null || objectScript.vehicles == null) return -1;
 
+        for (int i = 0; i < objectScript.vehicles.Length; i++)
+        {
+            if (objectScript.vehicles[i] == vehicleObj)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
 }
