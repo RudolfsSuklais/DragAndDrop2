@@ -84,12 +84,26 @@ public class ObjectScript : MonoBehaviour
         for (int i = 0; i < vehicles.Length; i++)
         {
             if (vehicles[i] == null) continue;
+
+            RectTransform rectTransform = vehicles[i].GetComponent<RectTransform>();
+
             Vector3 spawnPos = shuffledSpawnPoints[i % shuffledSpawnPoints.Length].position;
-            vehicles[i].GetComponent<RectTransform>().position = spawnPos;
-            startCoordinates[i] = vehicles[i].GetComponent<RectTransform>().localPosition;
+            rectTransform.position = spawnPos;
+
+            // Save the start coordinates (localPosition)
+            startCoordinates[i] = rectTransform.localPosition;
             placedCorrectly[i] = false; // ensure initial state
+
+            // Apply random rotation around Z axis between 0 and 360 degrees
+            float randomRotation = UnityEngine.Random.Range(0f, 360f);
+            rectTransform.localRotation = Quaternion.Euler(0f, 0f, randomRotation);
+
+            // Apply random scale between 0.3 and 0.9 (same scale for x and y for uniform scaling)
+            float randomScale = UnityEngine.Random.Range(0.3f, 0.9f);
+            rectTransform.localScale = new Vector3(randomScale, randomScale, 1f);
         }
     }
+
 
     private void ShuffleAndPlaceShadows()
     {
@@ -100,11 +114,24 @@ public class ObjectScript : MonoBehaviour
         for (int i = 0; i < shadows.Length; i++)
         {
             if (shadows[i] == null) continue;
+
+            RectTransform rectTransform = shadows[i].GetComponent<RectTransform>();
+
             Vector3 shadowSpawnPos = shuffledShadowSpawnPoints[i % shuffledShadowSpawnPoints.Length].position;
-            shadows[i].GetComponent<RectTransform>().position = shadowSpawnPos;
-            shadowStartCoordinates[i] = shadows[i].GetComponent<RectTransform>().localPosition;
+            rectTransform.position = shadowSpawnPos;
+
+            shadowStartCoordinates[i] = rectTransform.localPosition;
+
+            // Apply random rotation around Z axis between 0 and 360 degrees
+            float randomRotation = UnityEngine.Random.Range(0f, 360f);
+            rectTransform.localRotation = Quaternion.Euler(0f, 0f, randomRotation);
+
+            // Apply random uniform scale between 0.3 and 0.9 for both x and y
+            float randomScale = UnityEngine.Random.Range(0.3f, 0.9f);
+            rectTransform.localScale = new Vector3(randomScale, randomScale, 1f);
         }
     }
+
 
     void ShuffleArray<T>(T[] array)
     {
