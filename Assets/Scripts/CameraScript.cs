@@ -2,13 +2,21 @@ using UnityEngine;
 
 public class CameraScript : MonoBehaviour
 {
-    public float maxZoom = 300f,
-        minZoom = 150f,
-        panSpeed = 6f;
+    [Header("Camera Settings")]
+    public float panSpeed = 6f;
+
+    // Fixed zoom values - not visible in inspector
+    private const float MAX_ZOOM = 530f;
+    private const float MIN_ZOOM = 300f;
+
     Vector3 bottomLeft, topRight;
     float cameraMaxX, cameraMinX, cameraMaxY, cameraMinY, x, y;
     public Camera cam;
     private UIManager uiManager;
+
+    // Public properties to access the values
+    public float MaxZoom => MAX_ZOOM;
+    public float MinZoom => MIN_ZOOM;
 
     void Start()
     {
@@ -21,33 +29,34 @@ public class CameraScript : MonoBehaviour
         cameraMaxY = topRight.y;
         cameraMinY = bottomLeft.y;
 
-        // Find the UIManager to check for win screen state
         uiManager = FindFirstObjectByType<UIManager>();
+
+        // Ensure camera starts within zoom bounds
+        cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, MIN_ZOOM, MAX_ZOOM);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        // Check if win screen is active - if so, don't process camera controls
-        if (IsWinScreenActive())
-        {
-            return;
-        }
+        if (IsWinScreenActive()) return;
 
         x = Input.GetAxis("Mouse X") * panSpeed;
         y = Input.GetAxis("Mouse Y") * panSpeed;
         transform.Translate(x, y, 0);
 
-        if ((Input.GetAxis("Mouse ScrollWheel") > 0) && cam.orthographicSize > minZoom)
+        if ((Input.GetAxis("Mouse ScrollWheel") > 0) && cam.orthographicSize > MIN_ZOOM)
         {
             cam.orthographicSize = cam.orthographicSize - 50f;
         }
 
-        if ((Input.GetAxis("Mouse ScrollWheel") < 0) && cam.orthographicSize < maxZoom)
+        if ((Input.GetAxis("Mouse ScrollWheel") < 0) && cam.orthographicSize < MAX_ZOOM)
         {
             cam.orthographicSize = cam.orthographicSize + 50f;
         }
 
+        // Ensure zoom stays within bounds
+        cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, MIN_ZOOM, MAX_ZOOM);
+
+        // ... rest of your existing code
         topRight = cam.ScreenToWorldPoint(
             new Vector3(cam.pixelWidth, cam.pixelHeight, -transform.position.z));
         bottomLeft = cam.ScreenToWorldPoint(new Vector3(0, 0, -transform.position.z));
@@ -79,24 +88,14 @@ public class CameraScript : MonoBehaviour
 
     private bool IsWinScreenActive()
     {
-        // Check if UIManager exists and win panel is active
         if (uiManager != null && uiManager.winPanel != null)
         {
             bool isActive = uiManager.winPanel.activeInHierarchy;
-            if (isActive)
-            {
-                // Optionally disable this script completely when win screen is active
-                this.enabled = false;
-            }
+            if (isActive) this.enabled = false;
             return isActive;
         }
 
-        // Fallback: try to find UIManager if not cached
-        if (uiManager == null)
-        {
-            uiManager = FindFirstObjectByType<UIManager>();
-        }
-
+        if (uiManager == null) uiManager = FindFirstObjectByType<UIManager>();
         return false;
     }
 }

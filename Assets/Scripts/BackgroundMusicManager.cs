@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BackgroundMusicManager : MonoBehaviour
 {
     [Header("Background Music")]
     public AudioClip menuMusic;
-    public AudioClip gameMusic;
 
     [Header("Audio Settings")]
     [Range(0f, 1f)]
@@ -38,8 +38,14 @@ public class BackgroundMusicManager : MonoBehaviour
 
     void Start()
     {
-        // Play menu music when the game starts
-        PlayMenuMusic();
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        // Check initial scene
+        OnSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
+    }
+
+    void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void SetupAudioSource()
@@ -49,43 +55,72 @@ public class BackgroundMusicManager : MonoBehaviour
         audioSource.playOnAwake = false;
     }
 
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Pārbaudām vai objekts vēl eksistē
+        if (this == null || gameObject == null) return;
+
+        if (scene.buildIndex == 0) // Menu scene
+        {
+            PlayMenuMusic();
+        }
+        else // Other scenes - stop music
+        {
+            StopMusic();
+        }
+    }
+
     public void PlayMenuMusic()
     {
+        // Pārbaudām visas iespējamās null atsauces
+        if (this == null || gameObject == null || audioSource == null)
+        {
+            Debug.LogError("BackgroundMusicManager: Cannot play music - null reference");
+            return;
+        }
+
         if (menuMusic != null && audioSource.clip != menuMusic)
         {
             audioSource.clip = menuMusic;
             audioSource.Play();
         }
-    }
-
-    public void PlayGameMusic()
-    {
-        if (gameMusic != null && audioSource.clip != gameMusic)
+        else if (menuMusic != null && !audioSource.isPlaying)
         {
-            audioSource.clip = gameMusic;
             audioSource.Play();
         }
     }
 
     public void StopMusic()
     {
-        audioSource.Stop();
+        if (this != null && gameObject != null && audioSource != null)
+        {
+            audioSource.Stop();
+        }
     }
 
     public void SetMusicVolume(float volume)
     {
         musicVolume = Mathf.Clamp01(volume);
-        audioSource.volume = musicVolume;
+        if (audioSource != null)
+        {
+            audioSource.volume = musicVolume;
+        }
     }
 
     // Optional: Pause and Resume methods
     public void PauseMusic()
     {
-        audioSource.Pause();
+        if (audioSource != null)
+        {
+            audioSource.Pause();
+        }
     }
 
     public void ResumeMusic()
     {
-        audioSource.UnPause();
+        if (audioSource != null)
+        {
+            audioSource.UnPause();
+        }
     }
 }

@@ -1,26 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class SceneLoader : MonoBehaviour
 {
-    private static SceneLoader instance;
-
-    void Awake()
-    {
-        // Implement singleton pattern to persist across scenes
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-    }
-
-    // Public methods that will appear in the Inspector
     public void LoadSceneByName(string sceneName)
     {
         Debug.Log($"Loading scene: {sceneName}");
@@ -49,13 +31,5 @@ public class SceneLoader : MonoBehaviour
         LoadSceneByName(currentSceneName);
     }
 
-    public void QuitGame()
-    {
-        Debug.Log("Quitting game...");
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-    }
+    // QuitGame metode ir izdzēsta - izmantosim tikai QuitApplication
 }
