@@ -89,7 +89,7 @@ Katru reizi, kad spēle tiek palaista, transportlīdzekļu pozīcijas tiek **ģe
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/97ef1aab-9900-4b1d-ac86-dff08f38bdb8" />
 
 
-### ⭐ Uzvaras ekrāns
+### ⭐ Spēles beigu ekrāns
 <img width="1920" height="1080" alt="Untitled design (11)" src="https://github.com/user-attachments/assets/f29d6455-f3d6-4a62-9b42-b0672d3d82a0" />
 
 
