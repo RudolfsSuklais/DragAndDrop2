@@ -79,26 +79,30 @@ public class CameraScript : MonoBehaviour
 
     void HandleTouch()
     {
-        if (Input.touchCount <= 0) // ✅ Fixed "== -1"
+        if (Input.touchCount <= 0)
             return;
+
+        // If two fingers: pinch only
+        if (Input.touchCount == 2)
+        {
+            isTouchPaning = false;
+            panFingerId = -1;
+            HandlePinch();
+            return; // ← important to not run the pan code below
+        }
 
         Touch t = Input.GetTouch(0);
-
-        if (IsTouchingOverUIButton(t.position))
-            return;
+        if (IsTouchingOverUIButton(t.position)) return;
 
         if (t.phase == TouchPhase.Began)
         {
-            float dt = Time.time - lastTapTime; // ✅ Fixed typo
+            float dt = Time.time - lastTapTime;
             if (dt <= doubleTapMaxDelay && Vector2.Distance(t.position, lastTouchPos) <= doubleTapMaxDistance)
             {
                 StartCoroutine(ResetZoomSmooth());
                 lastTapTime = 0f;
             }
-            else
-            {
-                lastTapTime = Time.time;
-            }
+            else lastTapTime = Time.time;
 
             lastTouchPos = t.position;
             panFingerId = t.fingerId;
@@ -106,8 +110,9 @@ public class CameraScript : MonoBehaviour
         }
         else if (t.phase == TouchPhase.Moved && isTouchPaning && t.fingerId == panFingerId)
         {
-            Vector2 delta = t.position - lastTouchPos; // ✅ Fixed typo "lasTouchPos"
-            transform.Translate(ScreenDeltaToWorldDelta(delta) * touchPanSpeed, Space.World);
+            Vector2 delta = t.position - lastTouchPos;
+            // Make pan speed framerate-independent:
+            transform.Translate(ScreenDeltaToWorldDelta(delta) * touchPanSpeed * Time.deltaTime, Space.World);
             lastTouchPos = t.position;
         }
         else if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
@@ -115,12 +120,8 @@ public class CameraScript : MonoBehaviour
             isTouchPaning = false;
             panFingerId = -1;
         }
-
-        if (Input.touchCount == 2)
-        {
-            HandlePinch();
-        }
     }
+
 
     bool IsTouchingOverUIButton(Vector2 touchPos)
     {

@@ -1,22 +1,19 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems; // ✅ Required for BaseEventData
+using UnityEngine.EventSystems;
 
 public class TransformationScript : MonoBehaviour
 {
     public float rotationSpeed = 90f;
     public float scaleSpeed = 0.5f;
-
-    private bool rotateCW, rotateCCW, scaleUpY, scaleDownY, scaleUpX, scaleDownX;
     public static bool isTransforming = false;
+    private bool rotateCW, rotateCCW, scaleUpY, scaleDownY, scalUpX, scaleDownX;
+
+
 
     void Update()
     {
-        // ✅ Only execute if there's an object selected
         if (ObjectScript.lastDragged == null)
-        {
-            isTransforming = false;
             return;
-        }
 
         RectTransform rt = ObjectScript.lastDragged.GetComponent<RectTransform>();
 
@@ -30,7 +27,7 @@ public class TransformationScript : MonoBehaviour
             rt.Rotate(0, 0, rotationSpeed * Time.deltaTime);
         }
 
-        if (scaleUpY && rt.localScale.y < 0.8f)
+        if (scaleUpY && rt.localScale.y < 0.9f)
         {
             rt.localScale += new Vector3(0, scaleSpeed * Time.deltaTime, 0);
         }
@@ -40,7 +37,7 @@ public class TransformationScript : MonoBehaviour
             rt.localScale -= new Vector3(0, scaleSpeed * Time.deltaTime, 0);
         }
 
-        if (scaleUpX && rt.localScale.x < 0.8f)
+        if (scalUpX && rt.localScale.x < 0.9f)
         {
             rt.localScale += new Vector3(scaleSpeed * Time.deltaTime, 0, 0);
         }
@@ -50,68 +47,24 @@ public class TransformationScript : MonoBehaviour
             rt.localScale -= new Vector3(scaleSpeed * Time.deltaTime, 0, 0);
         }
 
-        // ✅ Update isTransforming state
-        isTransforming = rotateCW || rotateCCW || scaleUpY || scaleDownY || scaleUpX || scaleDownX;
+        isTransforming = rotateCW || rotateCCW || scaleUpY || scaleDownY || scalUpX || scaleDownX;
     }
 
-    // ✅ All event methods moved OUTSIDE of Update()
-    public void StartRotateCW(BaseEventData data)
-    {
-        rotateCW = true;
-    }
+    public void StartRotateCW(BaseEventData data) { rotateCW = true; }
+    public void StopRotateCW(BaseEventData data) { rotateCW = false; }
 
-    public void StopRotateCW(BaseEventData data)
-    {
-        rotateCW = false;
-    }
+    public void StartRotateCCW(BaseEventData data) { rotateCCW = true; }
+    public void StopRotateCCW(BaseEventData data) { rotateCCW = false; }
 
-    public void StartRotateCCW(BaseEventData data)
-    {
-        rotateCCW = true;
-    }
+    public void StartScaleUpY(BaseEventData data) { scaleUpY = true; }
+    public void StopScaleUpY(BaseEventData data) { scaleUpY = false; }
 
-    public void StopRotateCCW(BaseEventData data)
-    {
-        rotateCCW = false;
-    }
+    public void StartScaleDownY(BaseEventData data) { scaleDownY = true; }
+    public void StopScaleDownY(BaseEventData data) { scaleDownY = false; }
 
-    public void StartScaleUpY(BaseEventData data)
-    {
-        scaleUpY = true;
-    }
+    public void StartScaleUpX(BaseEventData data) { scalUpX = true; }
+    public void StopScaleUpX(BaseEventData data) { scalUpX = false; }
 
-    public void StopScaleUpY(BaseEventData data)
-    {
-        scaleUpY = false;
-    }
-
-    public void StartScaleDownY(BaseEventData data)
-    {
-        scaleDownY = true;
-    }
-
-    public void StopScaleDownY(BaseEventData data)
-    {
-        scaleDownY = false;
-    }
-
-    public void StartScaleUpX(BaseEventData data)
-    {
-        scaleUpX = true;
-    }
-
-    public void StopScaleUpX(BaseEventData data)
-    {
-        scaleUpX = false;
-    }
-
-    public void StartScaleDownX(BaseEventData data)
-    {
-        scaleDownX = true;
-    }
-
-    public void StopScaleDownX(BaseEventData data)
-    {
-        scaleDownX = false;
-    }
+    public void StartScaleDownX(BaseEventData data) { scaleDownX = true; }
+    public void StopScaleDownX(BaseEventData data) { scaleDownX = false; }
 }
