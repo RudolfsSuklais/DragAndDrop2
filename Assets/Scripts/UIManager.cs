@@ -9,6 +9,8 @@ public class UIManager : MonoBehaviour
     public GameObject[] stars;
     public Text starCountText;
     public Text timeSpentText; // Optional: UI Text for time spent
+    public GameObject CanvasBtns;
+
 
     [Header("Win Screen Buttons")]
     public Button restartButton;
@@ -48,6 +50,8 @@ public class UIManager : MonoBehaviour
         }
     }
 
+
+
     /// <summary>
     /// Displays the win screen.
     /// </summary>
@@ -64,45 +68,45 @@ public class UIManager : MonoBehaviour
     /// <param name="elapsedTime">Time spent in seconds (optional)</param>
     public void ShowWinScreenWithStars(int starsToShow, int placedCount, int totalVehicles, float elapsedTime = -1f)
     {
-        if (winShown) return; // Prevent multiple triggers
+        if (winShown) return;
         winShown = true;
 
-        // Calculate stars based on your new criteria
-        int calculatedStars = CalculateStars(placedCount, totalVehicles);
+        var cam = FindObjectOfType<CameraScript>();
+        if (cam != null)
+            cam.isBlocked = true;
 
-        // Use the calculated stars instead of the passed parameter
-        starsToShow = calculatedStars;
 
-        // Show win panel
+        // Paslēp visu spēles UI
+        if (CanvasBtns != null)
+            CanvasBtns.SetActive(false);
+
+        // Parādi win screen paneli
         if (winPanel != null)
             winPanel.SetActive(true);
 
-        // Show stars
+        // Tālāk viss paliek kā tev bija…
+        int calculatedStars = CalculateStars(placedCount, totalVehicles);
+        starsToShow = calculatedStars;
+
         if (stars != null)
         {
             for (int i = 0; i < stars.Length; i++)
                 stars[i].SetActive(i < starsToShow);
         }
 
-        // Show vehicle placement info
         if (starCountText != null)
             starCountText.text = $"You placed {placedCount}/{totalVehicles} vehicles correctly!";
 
-        // Show elapsed time
         if (timeSpentText != null && elapsedTime >= 0f)
         {
             TimeSpan time = TimeSpan.FromSeconds(elapsedTime);
             timeSpentText.text = $"Time spent: {time.Minutes:D2}:{time.Seconds:D2}";
         }
 
-        // Enable buttons
-        if (restartButton != null)
-            restartButton.interactable = true;
-        if (quitButton != null)
-            quitButton.interactable = true;
-
-        Debug.Log($"Win screen shown: {placedCount}/{totalVehicles} vehicles, {starsToShow} star(s), time={elapsedTime} seconds");
+        restartButton.interactable = true;
+        quitButton.interactable = true;
     }
+
 
     /// <summary>
     /// Calculates the number of stars based on vehicles placed correctly

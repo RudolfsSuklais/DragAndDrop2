@@ -24,6 +24,11 @@ public class SceneLoader : MonoBehaviour
     {
         LoadSceneByName("MainMenu");
     }
+    public void LoadHanoiTower()
+    {
+        LoadSceneByName("Hanoi Tower");
+    }
+
 
     public void RestartCurrentScene()
     {

@@ -1,240 +1,227 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
+
 
 public class ObstaclesControllerScript : MonoBehaviour
 {
-    [HideInInspector]
-    public float speed = 1f;
+    [HideInInspector] public float speed = 1f;
+
     public float fadeDuration = 1.5f;
     public float waveAmplitude = 25f;
     public float waveFrequency = 1f;
-    private ObjectScript objectScript;
-    private ScreenBoundriesScript scrreenBoundriesScript;
+
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
+    private ObjectScript objectScript;
+    private ScreenBoundriesScript screenBoundries;
+
     private bool isFadingOut = false;
-    private bool isExploading = false;
+    private bool isExploding = false;
+
     private Image image;
     private Color originalColor;
 
     void Start()
     {
+        rectTransform = GetComponent<RectTransform>();
+
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null)
-        {
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
-        }
-
-        rectTransform = GetComponent<RectTransform>();
 
         image = GetComponent<Image>();
         originalColor = image.color;
+
         objectScript = FindFirstObjectByType<ObjectScript>();
-        scrreenBoundriesScript = FindFirstObjectByType<ScreenBoundriesScript>();
+        screenBoundries = FindFirstObjectByType<ScreenBoundriesScript>();
+
         StartCoroutine(FadeIn());
     }
 
-    // Update is called once per frame
     void Update()
+    {
+        MoveWave();
+
+        if (!isFadingOut && !IsVisibleToCamera(gameObject))
+        {
+            StartCoroutine(FadeOutAndDestroy());
+            isFadingOut = true;
+        }
+
+        HandleBombHover();
+        HandleVehicleCollision();
+    }
+
+    // -------------------------
+    // MOVEMENT
+    // -------------------------
+    void MoveWave()
     {
         float waveOffset = Mathf.Sin(Time.time * waveFrequency) * waveAmplitude;
         rectTransform.anchoredPosition += new Vector2(-speed * Time.deltaTime, waveOffset * Time.deltaTime);
+    }
 
-        // <-
-        if (speed > 0 && transform.position.x < (scrreenBoundriesScript.minX + 80) && !isFadingOut)
-        {
-            StartCoroutine(FadeOutAndDestroy());
-            isFadingOut = true;
-        }
-
-        // ->
-        if (speed < 0 && transform.position.x > (scrreenBoundriesScript.maxX - 80) && !isFadingOut)
-        {
-            StartCoroutine(FadeOutAndDestroy());
-            isFadingOut = true;
-        }
-
-        if (CompareTag("Bomb") && !isExploading &&
-            RectTransformUtility.RectangleContainsScreenPoint(
-                rectTransform, Input.mousePosition, Camera.main))
-        {
-            Debug.Log("The cursor collided with a bomb! (without car)");
-            TriggerExplosion();
-        }
-
-        if (ObjectScript.drag && !isFadingOut &&
+    // -------------------------
+    // BOMB HOVER TRIGGER
+    // -------------------------
+    void HandleBombHover()
+    {
+        if (CompareTag("Bomb") && !isExploding &&
             RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition, Camera.main))
         {
-            Debug.Log("The cursor collided with a flying object!");
+            TriggerExplosion();
+        }
+    }
 
+    // -------------------------
+    // VEHICLE COLLISION
+    // -------------------------
+    void HandleVehicleCollision()
+    {
+        if (!ObjectScript.drag || isFadingOut)
+            return;
+
+        if (RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition, Camera.main))
+        {
             if (ObjectScript.lastDragged != null)
             {
-                // Find the vehicle index before destroying it
                 int vehicleIndex = GetVehicleIndex(ObjectScript.lastDragged);
 
-                if (vehicleIndex != -1)
-                {
-                    Debug.Log($"[Obstacle] Destroying vehicle {ObjectScript.lastDragged.name} at index {vehicleIndex}");
-                    StartCoroutine(ShrinkAndDestroy(ObjectScript.lastDragged, 0.5f, vehicleIndex));
-                }
-                else
-                {
-                    Debug.LogWarning($"[Obstacle] Could not find vehicle index for {ObjectScript.lastDragged.name}");
-                    // Still destroy the object even if index not found
-                    StartCoroutine(ShrinkAndDestroy(ObjectScript.lastDragged, 0.5f, -1));
-                }
+                StartCoroutine(ShrinkAndDestroy(ObjectScript.lastDragged, 0.5f, vehicleIndex));
 
                 ObjectScript.lastDragged = null;
                 ObjectScript.drag = false;
-            }
-            else
-            {
-                Debug.LogWarning("[Obstacle] ObjectScript.lastDragged is null!");
             }
 
             StartToDestroy();
         }
     }
+
+    // -------------------------
+    // VISIBILITY CHECK
+    // -------------------------
+    bool IsVisibleToCamera(GameObject obj)
+    {
+        Vector3 viewport = Camera.main.WorldToViewportPoint(obj.transform.position);
+        return viewport.x > 0 && viewport.x < 1 &&
+               viewport.y > 0 && viewport.y < 1 &&
+               viewport.z > 0;
+    }
+
+    // -------------------------
+    // EXPLOSION LOGIC
+    // -------------------------
     public void TriggerExplosion()
     {
-        isExploading = true;
+        isExploding = true;
         objectScript.effects.PlayOneShot(objectScript.audioCli[6], 5f);
 
-        if (TryGetComponent<Animator>(out Animator animator))
-        {
+        if (TryGetComponent(out Animator animator))
             animator.SetBool("explode", true);
-        }
 
         image.color = Color.red;
         StartCoroutine(RecoverColor(0.4f));
 
         StartCoroutine(Vibrate());
-        StartCoroutine(WaitBeforeExpload());
+        StartCoroutine(WaitBeforeExplode());
     }
 
-    IEnumerator WaitBeforeExpload()
+    IEnumerator WaitBeforeExplode()
     {
         float radius = 0f;
-        if (TryGetComponent<CircleCollider2D>(out CircleCollider2D circleCollider))
-        {
-            radius = circleCollider.radius * transform.lossyScale.x;
-        }
-        ExploadAndDestroy(radius);
+
+        if (TryGetComponent(out CircleCollider2D circle))
+            radius = circle.radius * transform.lossyScale.x;
+
+        ExplodeAndDestroyNearby(radius);
         yield return new WaitForSeconds(1.8f);
-        ExploadAndDestroy(radius);
+        ExplodeAndDestroyNearby(radius);
+
         Destroy(gameObject);
     }
 
-    void ExploadAndDestroy(float radius)
+    void ExplodeAndDestroyNearby(float radius)
     {
-        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, radius);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
 
-        foreach (var hitCollider in hitColliders)
+        foreach (var hit in hits)
         {
-            if (hitCollider != null && hitCollider.gameObject != gameObject)
+            if (hit.gameObject == gameObject) continue;
+
+            int vehicleIndex = GetVehicleIndex(hit.gameObject);
+
+            if (vehicleIndex != -1)
             {
-                // Check if it's a vehicle by looking in the objectScript.vehicles array
-                int vehicleIndex = GetVehicleIndex(hitCollider.gameObject);
-                if (vehicleIndex != -1)
-                {
-                    // It's a vehicle - destroy it properly
-                    objectScript.RemoveVehicle(vehicleIndex);
-                    Destroy(hitCollider.gameObject);
-                }
-                else
-                {
-                    // It's another obstacle
-                    ObstaclesControllerScript obj = hitCollider.gameObject.GetComponent<ObstaclesControllerScript>();
-                    if (obj != null && !obj.isExploading)
-                    {
-                        obj.StartToDestroy();
-                    }
-                }
+                objectScript.RemoveVehicle(vehicleIndex);
+                Destroy(hit.gameObject);
             }
         }
     }
 
+    // -------------------------
+    // NORMAL DESTROY
+    // -------------------------
     public void StartToDestroy()
     {
-        if (!isFadingOut)
-        {
-            StartCoroutine(FadeOutAndDestroy());
-            isFadingOut = true;
+        if (isFadingOut) return;
 
-            image.color = Color.cyan;
-            StartCoroutine(RecoverColor(0.5f));
+        isFadingOut = true;
 
-            objectScript.effects.PlayOneShot(objectScript.audioCli[5]);
-            StartCoroutine(Vibrate());
-        }
+        image.color = Color.cyan;
+        StartCoroutine(RecoverColor(0.5f));
+
+        objectScript.effects.PlayOneShot(objectScript.audioCli[5]);
+        StartCoroutine(Vibrate());
+        StartCoroutine(FadeOutAndDestroy());
     }
 
-    IEnumerator Vibrate()
-    {
-        Vector2 originalPosition = rectTransform.anchoredPosition;
-        float duration = 0.3f;
-        float elpased = 0f;
-        float intensity = 5f;
-
-        while (elpased < duration)
-        {
-            rectTransform.anchoredPosition = originalPosition + Random.insideUnitCircle * intensity;
-            elpased += Time.deltaTime;
-            yield return null;
-        }
-        rectTransform.anchoredPosition = originalPosition;
-    }
-
+    // -------------------------
+    // EFFECTS
+    // -------------------------
     IEnumerator FadeIn()
     {
-        float t = 0f;
+        float t = 0;
         while (t < fadeDuration)
         {
             t += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Lerp(0f, 1f, t / fadeDuration);
+            canvasGroup.alpha = Mathf.Lerp(0, 1, t / fadeDuration);
             yield return null;
         }
-        canvasGroup.alpha = 1f;
+        canvasGroup.alpha = 1;
     }
 
     IEnumerator FadeOutAndDestroy()
     {
-        float t = 0f;
+        float t = 0;
         float startAlpha = canvasGroup.alpha;
 
         while (t < fadeDuration)
         {
             t += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, t / fadeDuration);
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0, t / fadeDuration);
             yield return null;
         }
-        canvasGroup.alpha = 0f;
+
         Destroy(gameObject);
     }
 
-    IEnumerator ShrinkAndDestroy(GameObject target, float duration, int vehicleIndex = -1)
+    IEnumerator Vibrate()
     {
-        Vector3 orginalScale = target.transform.localScale;
-        Quaternion orginalRotation = target.transform.rotation;
-        float t = 0f;
+        Vector2 originalPos = rectTransform.anchoredPosition;
+        float duration = 0.3f;
+        float elapsed = 0f;
 
-        while (t < duration)
+        while (elapsed < duration)
         {
-            t += Time.deltaTime;
-            target.transform.localScale = Vector3.Lerp(orginalScale, Vector3.zero, t / duration);
-            float angle = Mathf.Lerp(0f, 360f, t / duration);
-            target.transform.rotation = Quaternion.Euler(0f, 0f, angle);
+            rectTransform.anchoredPosition = originalPos + Random.insideUnitCircle * 5f;
+            elapsed += Time.deltaTime;
             yield return null;
         }
 
-        // Notify ObjectScript about the destroyed vehicle BEFORE destroying it
-        if (vehicleIndex != -1 && objectScript != null)
-        {
-            objectScript.RemoveVehicle(vehicleIndex);
-        }
-
-        Destroy(target);
+        rectTransform.anchoredPosition = originalPos;
     }
 
     IEnumerator RecoverColor(float seconds)
@@ -243,18 +230,30 @@ public class ObstaclesControllerScript : MonoBehaviour
         image.color = originalColor;
     }
 
-    // Helper method to find vehicle index in the objectScript.vehicles array
-    private int GetVehicleIndex(GameObject vehicleObj)
+    IEnumerator ShrinkAndDestroy(GameObject target, float duration, int vehicleIndex)
+    {
+        Vector3 startScale = target.transform.localScale;
+        float t = 0f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            target.transform.localScale = Vector3.Lerp(startScale, Vector3.zero, t / duration);
+            yield return null;
+        }
+
+        if (vehicleIndex != -1)
+            objectScript.RemoveVehicle(vehicleIndex);
+
+        Destroy(target);
+    }
+
+    int GetVehicleIndex(GameObject obj)
     {
         if (objectScript == null || objectScript.vehicles == null) return -1;
-
         for (int i = 0; i < objectScript.vehicles.Length; i++)
-        {
-            if (objectScript.vehicles[i] == vehicleObj)
-            {
+            if (objectScript.vehicles[i] == obj)
                 return i;
-            }
-        }
         return -1;
     }
 }
