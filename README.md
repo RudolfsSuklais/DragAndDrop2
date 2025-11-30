@@ -104,6 +104,50 @@ Katru reizi, kad spēle tiek palaista, transportlīdzekļu pozīcijas tiek **ģe
 
 
 ---
+# 🎮 Hanojas Torņa Spēle — Unity
+
+Šī ir pilnībā funkcionējoša *Hanojas torņa* spēle, kas izveidota, izmantojot Unity UI sistēmu.  
+Spēlētāja uzdevums ir pārvietot visus diskus no A torņa uz B vai C torni, ievērojot klasiskos noteikumus:
+
+1. Vienā gājienā drīkst pārvietot tikai vienu disku  
+2. Drīkst pārvietot tikai torņa augšējo disku  
+3. Lielāku disku nedrīkst likt uz mazāka diska  
+
+Spēle ietver vilkšanas-novilšanas vadību, taimeri, soļu skaitītāju, zvaigžņu sistēmu, uzvaras paneli un pēc izvēles arī Rewarded Ads reklāmas.
+
+---
+
+## 📁 Scēnas struktūra
+
+### **Galvenie objekti**
+| Objekts | Apraksts |
+|---------|----------|
+| **GameManager** | Kontrolē spēles loģiku: gājienus, taimeri, zvaigznes, disku izveidi, uzvaras noteikumus. |
+| **HanoiTower (A/B/C)** | Glabā disku krāvumu, aprēķina disku pozīcijas un validācijas. |
+| **DiskPrefab** | UI disks, kas tiek ģenerēts spēles sākumā. |
+| **DiskDragHandler** | Atbild par diska pārvietošanu, novietošanu un animāciju. |
+| **WinPanel** | Uzvaras panelis ar statistiku, restartēšanas un iziešanas pogām. |
+
+---
+
+## 🧠 GameManager funkcijas
+
+### ✔ Diski tiek izveidoti automātiski
+Sākot spēli, visi diski tiek ģenerēti A tornī:
+
+Zvaigžņu sistēma
+
+Balstīta uz spēles pabeigšanas laiku:
+
+Laiks	Zvaigznes
+≤ 60s	⭐⭐⭐
+≤ 80s	⭐⭐
+≤ 120s	⭐
+
+<img width="1100" height="538" alt="image" src="https://github.com/user-attachments/assets/cfbe1051-ab91-405b-a60c-75a6b70a593f" />
+<img width="1076" height="534" alt="image" src="https://github.com/user-attachments/assets/dd43d970-e3ca-4916-8eea-24321dd51683" />
+
+
 
 
 
